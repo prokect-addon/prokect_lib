@@ -312,7 +312,7 @@ function ProkectLib.ConcatTable(tTable, sSeparator, sPrint)
     local sString = ""
 
     for k, v in pairs(tTable) do
-        local categoryName = type(sPrint) == "string" and v[sPrint] or v["Name"]
+        local categoryName = type(sPrint) == "string" and v[sPrint] or k
         sString = sString .. sSeparator .. tostring(categoryName)
     end
 
