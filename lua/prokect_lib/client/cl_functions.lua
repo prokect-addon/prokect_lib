@@ -91,6 +91,9 @@ function ProkectLib:Sound(sName)
 	surface.PlaySound(ProkectLib.Config.Sound[sName])
 end
 
+--[[
+    Example: ProkectLib:GradientText("Text", "DermaDefault", 0, 0, Color(0, 0, 0), Color(255, 255, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+]]
 function ProkectLib:GradientText(sText, sFont, iX, iY, c1, c2, sXAlign, sYAlign)
     sText = tostring(sText)
     sFont = sFont or "DermaDefault"
@@ -137,5 +140,55 @@ function ProkectLib:GradientText(sText, sFont, iX, iY, c1, c2, sXAlign, sYAlign)
         
         local iWChar, _ = surface.GetTextSize(sChar)
         iCurrentX = iCurrentX + iWChar
+    end
+end
+
+--[[
+    Example : ProkectLib.ColorText("DermaDefault", 0, 0, 0, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, Color(255, 255, 255), "Hello", Color(255, 0, 0), "World")
+]]
+function ProkectLib.ColorText(sFont, iX, iY, sXAlign, sYAlign, ...)
+    local tArgs = {...}
+    local iTotalW = 0
+    local iTotalH = 0
+
+    sFont = sFont or "DermaDefault"
+    iX = iX or 0
+    iY = iY or 0
+    sXAlign = sXAlign or TEXT_ALIGN_LEFT
+    sYAlign = sYAlign or TEXT_ALIGN_TOP
+
+    surface.SetFont(sFont)
+    
+    for i = 1, #tArgs, 2 do
+        local sText = tostring(tArgs[i + 1])
+        local iTextW, iTextH = surface.GetTextSize(sText)
+        iTotalW = iTotalW + iTextW
+        iTotalH = math.max(iTotalH, iTextH)
+    end
+
+    if sXAlign == TEXT_ALIGN_CENTER then
+        iX = iX - iTotalW / 2
+    elseif sXAlign == TEXT_ALIGN_RIGHT then
+        iX = iX - iTotalW
+    end
+    
+    if sYAlign == TEXT_ALIGN_CENTER then
+        iY = iY - iTotalH / 2
+    elseif sYAlign == TEXT_ALIGN_BOTTOM then
+        iY = iY - iTotalH
+    end
+
+    local iCurrentX = iX
+    for i = 1, #tArgs, 2 do
+        local cColor = tArgs[i] or color_white
+        local sText = tostring(tArgs[i + 1]) or ""
+
+        local iWText, iHText = surface.GetTextSize(sText)
+
+        surface.SetTextColor(cColor)
+        surface.SetTextPos(iX, iY)
+        surface.DrawText(sText)
+
+        iX = iX + iWText
     end
 end
