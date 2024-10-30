@@ -47,4 +47,4 @@ function PANEL:Paint( w, h )
     
 end
 
-vgui.Register( "PTextEntry", PANEL, "DTextEntry" )
+vgui.Register("PTextEntry", PANEL, "DTextEntry")

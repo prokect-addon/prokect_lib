@@ -62,29 +62,6 @@ function ProkectLib.IsMaterial(sName)
 	return mat and mat:IsError() == false
 end
 
-local iDelay = 0
-function ProkectLib:ErrorNotify(iTime, sMsg, vParent)
-    if CurTime() < iDelay then return end	
-
-    surface.SetFont(ProkectLib:Font(22, "Bold"))
-    local iW, iH = surface.GetTextSize(sMsg)
-    
-    local vPanel = vgui.Create("DPanel", vParent)
-    vPanel:SetSize(iW + ProkectLib.RespX(20), iH + ProkectLib.RespY(10))
-    vPanel:SetPos(ScrW() / 2 - (iW + ProkectLib.RespX(20)) / 2 , -ProkectLib.RespY(30))
-    vPanel:MoveTo(ScrW() / 2 - (iW + ProkectLib.RespX(20)) / 2, iH + ProkectLib.RespY(10), .5, 0, -1)
-    vPanel.Paint = function(self, w, h)
-        draw.RoundedBox(10, 0, 0, w, h, ProkectLib.Config.Color["Error"])
-        draw.SimpleText(sMsg, ProkectLib:Font(22, "Bold"), w/2, h/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-    end
-
-    timer.Simple(iTime, function()
-        vPanel:AlphaTo(0, .5, 0, function() vPanel:Remove() end)
-    end)
-
-    iDelay = CurTime() + iTime
-end
-
 function ProkectLib:Sound(sName)
 	if not ProkectLib.Config.Sound[sName] then ProkectLib.Log("error", "ProkectLib:Sound: Invalid sName expected string got " .. type(sName)) return end
 
@@ -191,4 +168,89 @@ function ProkectLib.ColorText(sFont, iX, iY, sXAlign, sYAlign, ...)
 
         iX = iX + iWText
     end
+end
+
+/*
+    EZMASK STENCIL
+*/
+
+--[[
+Copyright 2021 alexsnowrun
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the
+Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
+THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+--]]
+
+ProkectLib.EZMASK = {}
+
+local function ResetStencils()
+	render.SetStencilWriteMask(0xFF)
+	render.SetStencilTestMask(0xFF)
+	render.SetStencilReferenceValue(0)
+	render.SetStencilPassOperation(STENCIL_KEEP)
+	render.SetStencilZFailOperation(STENCIL_KEEP)
+	render.ClearStencil()
+end
+
+local function EnableMasking()
+	render.SetStencilEnable(true)
+	render.SetStencilReferenceValue(1)
+	render.SetStencilCompareFunction(STENCIL_NEVER)
+	render.SetStencilFailOperation(STENCIL_REPLACE)
+end
+
+local function SaveMask()
+    render.SetStencilCompareFunction(STENCIL_EQUAL)
+    render.SetStencilFailOperation(STENCIL_KEEP)
+end
+
+local function DisableMasking()
+    render.SetStencilEnable(false)
+end
+
+function ProkectLib.EZMASK.DrawWithMask(func_mask, func_todraw)
+    ResetStencils()
+    EnableMasking()
+    func_mask()
+    SaveMask()
+    func_todraw()
+    DisableMasking()
+end
+
+ProkectLib.EZMASK.ResetStencils = ResetStencils
+ProkectLib.EZMASK.EnableMasking = EnableMasking
+ProkectLib.EZMASK.SaveMask = SaveMask
+ProkectLib.EZMASK.DisableMasking = DisableMasking
+
+function ProkectLib.DrawCircle(x, y, radius, angle_start, angle_end, color)
+	local poly = {}
+	angle_start = (angle_start or 0) + 270
+	angle_end   = (angle_end or 360) + 270
+	x = (x or 0) + radius
+    y = (y or 0) + radius
+
+	poly[1] = { x = x, y = y }
+	for i = math.min( angle_start, angle_end ), math.max( angle_start, angle_end ) do
+		local a = math.rad( i )
+		if angle_start < 0 then
+			poly[#poly + 1] = { x = x + math.cos( a ) * radius, y = y + math.sin( a ) * radius }
+		else
+			poly[#poly + 1] = { x = x - math.cos( a ) * radius, y = y - math.sin( a ) * radius }
+		end
+	end
+	poly[#poly + 1] = { x = x, y = y }
+
+	draw.NoTexture()
+	surface.SetDrawColor( color or color_white )
+	surface.DrawPoly( poly )
+
+	return poly
 end

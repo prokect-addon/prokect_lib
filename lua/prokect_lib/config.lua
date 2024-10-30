@@ -18,7 +18,7 @@ ProkectLib.Config.Color = {
 ProkectLib.Config.Materials = {}
 
 ProkectLib.Config.Sound = {
-    ["Click"] = "prokect/click.wav",
-    ["Hover"] = "prokect/hover.wav",
-    ["Sucess"] = "prokect/sucess.wav"
+    ["Click"] = Sound("prokect/click.wav"),
+    ["Hover"] = Sound("prokect/hover.wav"),
+    ["Sucess"] = Sound("prokect/sucess.wav")
 }
